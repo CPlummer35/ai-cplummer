@@ -3,11 +3,11 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy.util as util
 
 
-cid ='548c8cea1a4b47248dd400cf6816a8bb' # Client ID; copy this from your app created on beta.developer.spotify.com
-secret = '03dabb26743449edbc170791cb7ac219' # Client Secret; copy this from your app
-username = 'caiden35' # Your Spotify username
+cid ='548c8cea1a4b47248dd400cf6816a8bb' # Client ID
+secret = '03dabb26743449edbc170791cb7ac219' # Client Secret
+username = 'caiden35' 
 
-#for avaliable scopes see https://developer.spotify.com/web-api/using-scopes/
+
 scope = 'user-library-read playlist-modify-public playlist-read-private user-read-recently-played user-read-playback-state user-top-read user-modify-playback-state playlist-modify-private user-follow-modify user-read-currently-playing user-follow-read '
 
 redirect_uri='https://developer.spotify.com/dashboard/applications/548c8cea1a4b47248dd400cf6816a8bb'
@@ -24,7 +24,7 @@ if token:
 else:
     print("Can't get token for", username)
 
-#Create a dataframe of your playlist including tracks' names and audio features
+
 import pandas as pd
 
 sourcePlaylistID = '1soMqlNjiZSFGjhtVAGXUg'
@@ -36,7 +36,7 @@ track_ids = []
 track_names = []
 
 for i in range(0, len(songs)):
-    if songs[i]['track']['id'] != None: # Removes the local tracks in your playlist if there is any
+    if songs[i]['track']['id'] != None: 
         track_ids.append(songs[i]['track']['id'])
         track_names.append(songs[i]['track']['name'])
 
@@ -61,29 +61,21 @@ v=TfidfVectorizer(sublinear_tf=True, ngram_range=(1, 6), max_features=10000)
 X_names_sparse = v.fit_transform(track_names)
 print(X_names_sparse.shape)
 
-
-## Change the below info for each playlist manually to get better results
-# Give ratings to your tracks with respect to their playlist relevances
-# Rate them from 1-10, give higher ratings to those tracks which you think best chracterizes your playlist
-# If you order your playlist by relevance while creating it, this step will become easier
-# So now, we will deal with a classification task
 import numpy as np
 playlist_df['ratings']=[10, 9, 9, 10, 8, 6, 8, 7, 9, 5, 6, 7, 8, 3, 5, 8, 9, 0, 6, 5, 8, 9, 6, 8, 7, 8, 9, 5, 6, 7, 8, 9, 6, 7, 8]
 print(playlist_df.head())
 
 
-
-# Analyze feature importances
 from sklearn.ensemble.forest import RandomForestRegressor, RandomForestClassifier
 
 X_train = playlist_df.drop(['id', 'ratings'], axis=1)
 y_train = playlist_df['ratings']
-forest = RandomForestClassifier(random_state=42, max_depth=5, max_features=12) # Set by GridSearchCV below
+forest = RandomForestClassifier(random_state=42, max_depth=5, max_features=12) 
 forest.fit(X_train, y_train)
 importances = forest.feature_importances_
 indices = np.argsort(importances)[::-1]
 
-# Print the feature rankings
+
 print("Feature ranking:")
   
 for f in range(len(importances)):
@@ -92,7 +84,7 @@ for f in range(len(importances)):
             importances[indices[f]]))
 
 
-# Apply pca to the scaled train set first
+
 
 from sklearn import decomposition
 from sklearn.preprocessing import StandardScaler
@@ -110,15 +102,14 @@ plt.xlabel('Number of components')
 plt.ylabel('Total explained variance')
 plt.xlim(0, 12)
 plt.yticks(np.arange(0, 1.1, 0.1))
-plt.axvline(8, c='b') # Tune this so that you obtain at least a 95% total variance explained
+plt.axvline(8, c='b') 
 plt.axhline(0.95, c='r')
 #plt.show()
 
-# Fit your dataset to the optimal pca
+
 pca1 = decomposition.PCA(n_components=8)
 X_pca = pca1.fit_transform(X_scaled)
 
-# You may want to check the results of TSNE also
 from sklearn.manifold import TSNE
 
 tsne = TSNE(random_state=17)
@@ -166,11 +157,6 @@ knn_grid = GridSearchCV(knn, knn_params, cv=skf, n_jobs=-1, verbose=True)
 knn_grid.fit(X_train_last, y_train)
 knn_grid.best_params_, knn_grid.best_score_
 
-# Now build your test set;
-# Generate a new dataframe for recommended tracks
-# Set recommendation limit as half the Playlist Length per track, you may change this as you like
-# Check documentation for  recommendations; https://beta.developer.spotify.com/documentation/web-api/reference/browse/get-recommendations/
-
 rec_tracks = []
 for i in playlist_df['id'].values.tolist():
     rec_tracks += sp.recommendations(seed_tracks=[i], limit=int(len(playlist_df)/2))['tracks'];
@@ -195,7 +181,6 @@ rec_playlist_df=rec_playlist_df[["acousticness", "danceability", "duration_ms",
                          "energy", "instrumentalness",  "key", "liveness",
                          "loudness", "mode", "speechiness", "tempo", "valence"]]
 
-# Make predictions
 tree_grid.best_estimator_.fit(X_train_last, y_train)
 rec_playlist_df_scaled = StandardScaler().fit_transform(rec_playlist_df)
 rec_playlist_df_pca = pca1.transform(rec_playlist_df_scaled)
@@ -207,18 +192,16 @@ rec_playlist_df['ratings']=y_pred_class
 rec_playlist_df = rec_playlist_df.sort_values('ratings', ascending = False)
 rec_playlist_df = rec_playlist_df.reset_index()
 
-# Pick the top ranking tracks to add your new playlist 9, 10 will work
 recs_to_add = rec_playlist_df[rec_playlist_df['ratings']>=9]['index'].values.tolist()
 
 # No ratings of 9 or 10 this case try adding 8's only
 recs_to_add = rec_playlist_df[rec_playlist_df['ratings']==8]['index'].values.tolist()
 
-# Check what is about to happen :)
 print(len(rec_tracks), rec_playlist_df.shape, len(recs_to_add))
 
 rec_array = np.reshape(recs_to_add, len(recs_to_add))
 
-# Create a new playlist for tracks to add - you may also add these tracks to your source playlist and proceed
+# Create a new playlist 
 playlist_recs = sp.user_playlist_create(username, 
                                         name='Recommended Songs for Playlist - {}'.format(sourcePlaylist['name']))
 
