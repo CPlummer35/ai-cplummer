@@ -3,14 +3,14 @@ from spotipy.oauth2 import SpotifyClientCredentials
 import spotipy.util as util
 
 
-cid ='548c8cea1a4b47248dd400cf6816a8bb' # Client ID
-secret = '03dabb26743449edbc170791cb7ac219' # Client Secret
-username = 'caiden35' 
+cid ='xxxxxxxxxxxxxxxxxx' # Client ID
+secret = 'xxxxxxxxxxxxxxxxxxxxxx' # Client Secret
+username = 'xxxxxxxxxxxxxxxxxxxx' 
 
 
 scope = 'user-library-read playlist-modify-public playlist-read-private user-read-recently-played user-read-playback-state user-top-read user-modify-playback-state playlist-modify-private user-follow-modify user-read-currently-playing user-follow-read '
 
-redirect_uri='https://developer.spotify.com/dashboard/applications/548c8cea1a4b47248dd400cf6816a8bb'
+redirect_uri='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
 
 client_credentials_manager = SpotifyClientCredentials(client_id=cid, client_secret=secret) 
 
